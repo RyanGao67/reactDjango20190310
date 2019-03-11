@@ -37,7 +37,7 @@ class Gamecontrol extends React.Component{
                   </label>
                 </div>
                 <div className="field">
-                    <input type="submit" value="Submit" onClick={this.props.onSubmit} style={{height:'4em'}}/>
+                    <input type="submit" value="Reset" onClick={this.props.onSubmit} style={{height:'4em'}}/>
                 </div>
               </div>
             </div>
@@ -50,7 +50,7 @@ class Gamecontrol extends React.Component{
                     </label>
                 </div>
                 <div className="field">
-                     <input type="submit" value="Submit" onClick={this.props.onSubmitRetrieve} style={{height:'4em'}}/>
+                     <input type="submit" value="Retrieve" onClick={this.props.onSubmitRetrieve} style={{height:'4em'}}/>
                 </div>
               </div>
             </div>
