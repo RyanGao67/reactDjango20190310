@@ -1,0 +1,14 @@
+[
+    {
+        "model": "backend.Map",
+        "pk": 1,
+        "fields": {
+            "height": 5,
+            "width": 5,
+            "mines": 1,
+            "detail": "10000000000000000000",
+            "userId":"player1",
+            "password":"123456"
+        }
+    }
+]
