@@ -125,7 +125,6 @@ class App extends React.Component {
           url: 'https://reactdjango20190311-assiduousryan.c9users.io/update/',
           data: JSON.stringify(data)
         }).then(response => {
-          console.log(response.data.status)
           this.setState({
             width:response.data.width,
             height:response.data.height,
