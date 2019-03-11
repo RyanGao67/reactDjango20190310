@@ -4,20 +4,33 @@ import axios from "axios";
 import Board from "./Board";
 import Gamecontrol from "./Gamecontrol";
 class App extends React.Component {
+    // As this is a relatively simply app
+    // I manage the whole state in App component
+    // Detail store the number of each cell
+    // Revealed store whether the cell is revealed
+    // GameId can be viewed as Id of a channel
+    // Allbuttons store more detailed information of each cell
+    // Status can be Pending, Win, or Lost
+    // If the width height is too big or too small, waring 
+    // store the information to tell the player
     constructor(props) {
       super(props);
       this.state = {
-        width: 2,
-        height : 2,
-        mines : 1,
-        detail : "1000",
-        revealed : "nnnn",
-        gameId : '',
+        width: 3,
+        height : 3,
+        mines : 2,
+        detail : "101000000",
+        revealed : "nnnnnnnnn",
+        gameId : '1',
         allButtons : [],
         status:"Pending",
-        warning:""
+        warning:"",
       };
     }
+    
+    // state.reavealed and state.detail are strings 
+    // Example: width=3, height=3, detail='101000000'
+    // The actural matrix is [[1,0,1],[0,0,0],[0,0,0]]
     recoverMatrix = (width, height, revealed, detail)=>{
       let buttons = [];
       for(let i=0;i<height;i++){
@@ -46,6 +59,8 @@ class App extends React.Component {
         this.setState({allButtons:buttons},()=>{console.log(this.state.allButtons)});
     }
     
+    // This function is a helper function used in DFS
+    // To determine the validaty of current index
     isValid = (row, column)=>{
       if(row<0)return false;
       if(row>=this.state.height)return false;
@@ -54,14 +69,16 @@ class App extends React.Component {
       return true;
     }
     
+    // Once form submitted 
+    // We'll store the information to the backend
+    // Also we need to update the game 
     handleSubmit = (event) => {
         event.preventDefault();
-        if(this.state.width<3){this.setState({warning:"Width at least 3"});return;}
+        if(this.state.width<3){this.setState({warning:"Width at least 3"});return;}       
         if(this.state.height<3){this.setState({warning:"Height at least 3"});return;}
         if(this.state.width>10){this.setState({warning:"Width at most 10"});return;}
         if(this.state.height>10){this.setState({warning:"Height at most 10"});return;}
         if(this.state.mines<1){this.setState({warning:"Mines at least 1"});return;}
-        console.log(this.state.height);
         let data = {
           width:this.state.width,
           height:this.state.height,
@@ -70,6 +87,7 @@ class App extends React.Component {
           action:"reset",
           status:"Pending"
         };
+        // user axios to talk to the backend
         axios.defaults.xsrfCookieName = 'csrftoken'
         axios.defaults.xsrfHeaderName = 'X-CSRFToken'
         axios({
@@ -77,12 +95,22 @@ class App extends React.Component {
           url: 'https://reactdjango20190311-assiduousryan.c9users.io/update/',
           data: JSON.stringify(data)
         }).then(response => {
-          this.setState({width:response.data.width,height:response.data.height,mines:response.data.mines},
+          this.setState({
+            width:response.data.width,
+            height:response.data.height,
+            mines:response.data.mines,
+            detail:response.data.detail,
+            status:response.data.status
+          },
           ()=>{
             this.recoverMatrix(response.data.width,response.data.height,response.data.revealed,response.data.detail)
           })
         })
       }
+      
+      
+    // When the player type in the specific gameId
+    // the player should be able to resume the game
     onSubmitRetrieve=(e)=>{
         e.preventDefault();
         let data = {
@@ -96,19 +124,40 @@ class App extends React.Component {
           url: 'https://reactdjango20190311-assiduousryan.c9users.io/update/',
           data: JSON.stringify(data)
         }).then(response => {
-          this.setState({width:response.data.width,height:response.data.height,mines:response.data.mines},
+          console.log(response.data.status)
+          this.setState({
+            width:response.data.width,
+            height:response.data.height,
+            mines:response.data.mines,
+            revealed:response.data.revealed,
+            detail:response.data.detail,
+            status:response.data.status
+          },
           ()=>{
             this.recoverMatrix(response.data.width,response.data.height,response.data.revealed,response.data.detail)
           })
         })
     }
+    
+    // Whenever the player update the form field 
+    // the stata will change accordingly
     handleGameIdChange = (e)=>{this.setState({gameId:e.target.value})}
     handleHeightChange = (e)=>{this.setState({height:e.target.value})}
     handleMinesChange = (e)=>{this.setState({mines:e.target.value})}
     handleWidthChange = (e)=>{this.setState({width:e.target.value})}
+    
+    // This function will take care of the cell click action
+    // Three cases here 
+    // 1. click on the number, reveal the number
+    // 2. click on safe place, reveal all the adjancent area
+    // 3. click on mine, lose the game
+    // To find all the adjancent safe area, I use the depth first search
+    // As I limited the size of the map to be at most 10*10, it is safe
     onCellClick = (e)=>{
+      if(this.state.status=="Win" || this.state.status=='Lost')return;  // When game over player can nolonger click on button
         let currow = e.target.getAttribute('row');
         let curcolumn = e.target.getAttribute('column');
+        let countN = currow*this.state.width+curcolumn;
         if(this.state.allButtons[currow][curcolumn].content==9){
             this.setState(
                 {
@@ -188,6 +237,8 @@ class App extends React.Component {
         }
         this.setState({status:"Win"},this.updateServer)
     }
+    // When all the information is updated 
+    // We need to store the information to the backend 
     updateServer = ()=>{
         let revealed = '';
         for(let i=0;i<this.state.height;i++){
@@ -199,7 +250,7 @@ class App extends React.Component {
         const data = {
             gameId:this.state.gameId,
             revealed:revealed,
-            status:this.state.status
+            status:this.state.status,
         };
         axios.defaults.xsrfCookieName = 'csrftoken'
         axios.defaults.xsrfHeaderName = 'X-CSRFToken'
@@ -210,18 +261,25 @@ class App extends React.Component {
         });
     }
     
+    // This is a nice mark to show the status of game
+    // under the map
     showStatus=()=>{
         switch(this.state.status){
-          case('Pending'):return <a class="ui teal tag label">{this.state.status}</a>
-          case('Lost'):return <a class="ui red tag label">{this.state.status}</a>
-          case('Win'):return <a class="ui tag label">{this.state.status}</a>
+          case('Pending'):return <a className="ui teal tag label">{this.state.status}</a>
+          case('Lost'):return <a className="ui red tag label">{this.state.status}</a>
+          case('Win'):return <a className="ui tag label">{this.state.status}</a>
           default: return <div/>
         }
     }
+    
+    // include three parts
+    // game conteol
+    // map
+    // game status
     render() {
         return (
-          <div class="ui one column stackable center aligned page grid">
-            <div class="column twelve wide">
+          <div className="ui one column stackable center aligned page grid">
+            <div className="column twelve wide">
               <div>
                 <div className="game-control">
                     <Gamecontrol
@@ -242,6 +300,7 @@ class App extends React.Component {
                   <Board 
                     onCellClick = {this.onCellClick}
                     allButtons = {this.state.allButtons}
+                    onContextMenu = {this.onContextMenu}
                   />
                 </div>
                 <div>

@@ -1,8 +1,8 @@
 import React from "react";
 
-
-
 class Board extends React.Component{
+    // This function will show the button accordingly
+    // Because different buttons can change overtime
     changeButton =(row,indexr,cell,indexc)=>{
         if(cell.revealed && cell.content!=9)return <button
                 className="ui icon button" 
@@ -21,7 +21,7 @@ class Board extends React.Component{
                 onClick={this.props.onCellClick}
                 row={indexr}
                 column={indexc}
-        >
+            >
             {cell.content}
         </button>
         else return <button
@@ -31,9 +31,11 @@ class Board extends React.Component{
                 onClick={this.props.onCellClick}
                 row={indexr}
                 column={indexc}
-        >
+            >
         </button>
     }
+    
+    // render the button
     showButtons = ()=>{
         return this.props.allButtons.map(
             (row,indexr)=>{

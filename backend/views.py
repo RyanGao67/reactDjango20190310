@@ -13,31 +13,31 @@ class MapCreate(generics.ListCreateAPIView):
   queryset = Map.objects.all()
   serializer_class = MapSerializer
 
-@csrf_exempt
+# This is the function to reset a game or retrieve an old game
+# depending on the date['action']
 def update(request):
   if request.method == "POST":
     data = json.loads(request.body.decode('utf-8'))
     action = data['action']
     gameId = data['gameId']
-    if action=="retrieve":
+    if action=="retrieve":                          # if we can not find a game, we can new a game 
       if not Map.objects.filter(userId=gameId).exists():
         newMap = Map(width=10, height=10, mines=10,userId=gameId,detail = getDetail(10,10,10), revealed='n'*100)
         newMap.save()
-      currentMap = Map.objects.get(userId=gameId)
-      print(currentMap.revealed);
-      print(currentMap.detail);
+      currentMap = Map.objects.get(userId=gameId)   # if we find the game, we return the game
       return JsonResponse({
         'height':currentMap.height,
         'width':currentMap.width,
         'mines':currentMap.mines,
         'detail':currentMap.detail,
-        'revealed':currentMap.revealed
+        'revealed':currentMap.revealed,
+        'status':currentMap.status
       })
-    width = int(data['width'])
-    height = int(data['height'])
-    mines = int(data['mines'])
+    width = int(data['width'])                     # The following is reset part
+    height = int(data['height'])                   # Using the information from client 
+    mines = int(data['mines'])                     # To create a new game
     totalNum = width*height
-    mines = mines if int(mines)<totalNum else totalNum
+    mines = mines if int(mines)<totalNum/2 else int(totalNum/2)
     revealed = ['n' for i in range(totalNum)]
     revealed = ''.join(revealed)
     details = getDetail(width, height, mines)
@@ -52,6 +52,7 @@ def update(request):
         currentMap.mines = mines
         currentMap.detail = details
         currentMap.revealed = revealed
+        currentMap.status = "Pending"
         currentMap.save()
     
     currentMap = Map.objects.get(userId=gameId)
@@ -60,9 +61,12 @@ def update(request):
       'width':currentMap.width,
       'mines':currentMap.mines,
       'detail':currentMap.detail,
-      'revealed':currentMap.revealed
+      'revealed':currentMap.revealed,
+      'status':currentMap.status
     })
-
+    
+# this is a helper function
+# 9 in details meaning this place is a mine
 def getDetail(width, height, mines):
   totalNum = width*height
   detailInit = [str(0) for i in range(totalNum)]
@@ -71,15 +75,14 @@ def getDetail(width, height, mines):
     detailInit[i] = str(9)
   return ''.join(detailInit)
 
-  
-@csrf_exempt
+# Every time the player click on the button
+# The server records the updated information
 def move(request):
   if request.method == "POST":
     data = json.loads(request.body.decode('utf-8'))
     gameId = data['gameId']
     revealed = data['revealed']
     status = data['status']
-    print(status)
     currentMap = Map.objects.get(userId=gameId)
     currentMap.revealed = revealed
     currentMap.status = status

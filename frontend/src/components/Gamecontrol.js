@@ -1,7 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom";
 class Gamecontrol extends React.Component{
-    
+    // This comtrol part has basicly two component 
+    // The first one to reset the game
+    // The second one to resume a game
+    // Reset: provide the width height, mines count to randomly generate a game
+    // Resume: provide the gameId to resume the game
+    // if the gameId can not be found then we create a new game with the GameId and default setting
     render() {
         return (
           <div>
