@@ -15,6 +15,7 @@ class MapCreate(generics.ListCreateAPIView):
 
 # This is the function to reset a game or retrieve an old game
 # depending on the date['action']
+@csrf_exempt
 def update(request):
   if request.method == "POST":
     data = json.loads(request.body.decode('utf-8'))
@@ -77,6 +78,7 @@ def getDetail(width, height, mines):
 
 # Every time the player click on the button
 # The server records the updated information
+@csrf_exempt
 def move(request):
   if request.method == "POST":
     data = json.loads(request.body.decode('utf-8'))

@@ -100,7 +100,8 @@ class App extends React.Component {
             height:response.data.height,
             mines:response.data.mines,
             detail:response.data.detail,
-            status:response.data.status
+            status:response.data.status,
+            warning:""
           },
           ()=>{
             this.recoverMatrix(response.data.width,response.data.height,response.data.revealed,response.data.detail)
@@ -131,7 +132,8 @@ class App extends React.Component {
             mines:response.data.mines,
             revealed:response.data.revealed,
             detail:response.data.detail,
-            status:response.data.status
+            status:response.data.status,
+            warning:""
           },
           ()=>{
             this.recoverMatrix(response.data.width,response.data.height,response.data.revealed,response.data.detail)
